@@ -55,7 +55,7 @@ router.post(
 		if (!userIds) throw new HTTPError("The user_ids array is missing", 400);
 		if (userIds.length > maxBulkBans)
 			throw new HTTPError(
-				"The user_ids array must be between 1 and 200 in length",
+				"The user_ids array is too long",
 				400,
 			);
 
@@ -107,8 +107,6 @@ router.post(
 
 			try {
 				await Promise.all([
-					Member.removeFromGuild(banned_user_id, guild_id),
-					ban.save(),
 					emitEvent({
 						event: "GUILD_BAN_ADD",
 						data: {
@@ -117,6 +115,8 @@ router.post(
 						},
 						guild_id: guild_id,
 					} as GuildBanAddEvent),
+					Member.removeFromGuild(banned_user_id, guild_id),
+					ban.save(),					
 				]);
 				banned_users.push(banned_user_id);
 			} catch {
