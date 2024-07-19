@@ -94,7 +94,7 @@ router.post(
 				if (failed_bans >= maxFailedBans) return;
 				// if too much failed bans, the whole ban request silently fails with no return
 				failed_users.push(banned_user_id);
-				
+				continue;
 			}
 
 			const ban = Ban.create({
