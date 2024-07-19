@@ -55,10 +55,7 @@ router.post(
 		const userIds: Array<string> = req.body.user_ids;
 		if (!userIds) throw new HTTPError("The user_ids array is missing", 400);
 		if (userIds.length > maxBulkBans)
-			throw new HTTPError(
-				"The user_ids array is too long",
-				400,
-			);
+			throw new HTTPError("The user_ids array is too long", 400);
 
 		const banned_users = [];
 		const failed_users = [];
@@ -117,7 +114,7 @@ router.post(
 						guild_id: guild_id,
 					} as GuildBanAddEvent),
 					Member.removeFromGuild(banned_user_id, guild_id),
-					ban.save(),					
+					ban.save(),
 				]);
 				banned_users.push(banned_user_id);
 			} catch {
