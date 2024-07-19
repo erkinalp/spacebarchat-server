@@ -22,5 +22,7 @@ export class MessageLimits {
 	maxReactions: number = 2048;
 	maxAttachmentSize: number = 1024 * 1024 * 1024;
 	maxBulkDelete: number = 1000;
+	maxBulkBans: number = 2000;
+	maxFailedBans: number = 50;
 	maxEmbedDownloadSize: number = 1024 * 1024 * 5;
 }

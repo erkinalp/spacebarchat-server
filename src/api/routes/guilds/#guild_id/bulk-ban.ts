@@ -48,11 +48,12 @@ router.post(
 		},
 	}),
 	async (req: Request, res: Response) => {
+		const { maxBulkBans, maxFailedBans } = Config.get().limits.message;
 		const { guild_id } = req.params;
 
 		const userIds: Array<string> = req.body.user_ids;
 		if (!userIds) throw new HTTPError("The user_ids array is missing", 400);
-		if (userIds.length > 200)
+		if (userIds.length > maxBulkBans)
 			throw new HTTPError(
 				"The user_ids array must be between 1 and 200 in length",
 				400,
@@ -60,16 +61,19 @@ router.post(
 
 		const banned_users = [];
 		const failed_users = [];
+		let failed_bans = 0;
 		for await (const banned_user_id of userIds) {
 			if (
 				req.user_id === banned_user_id &&
 				banned_user_id === req.permission?.cache.guild?.owner_id
 			) {
+				failed_bans++;
 				failed_users.push(banned_user_id);
 				continue;
 			}
 
 			if (req.permission?.cache.guild?.owner_id === banned_user_id) {
+				failed_bans++;
 				failed_users.push(banned_user_id);
 				continue;
 			}
@@ -78,7 +82,7 @@ router.post(
 				where: { guild_id: guild_id, user_id: banned_user_id },
 			});
 			if (existingBan) {
-				failed_users.push(banned_user_id);
+				// existing bans are silently ignored to prevent busy ban attacks
 				continue;
 			}
 
@@ -86,8 +90,11 @@ router.post(
 			try {
 				banned_user = await User.getPublicUser(banned_user_id);
 			} catch {
+				failed_bans++;
+				if (failed_bans >= maxFailedBans) return;
+				// if too much failed bans, the whole ban request silently fails with no return
 				failed_users.push(banned_user_id);
-				continue;
+				
 			}
 
 			const ban = Ban.create({
