@@ -19,6 +19,7 @@
 import { getIpAdress, route } from "@spacebar/api";
 import {
 	Ban,
+	Config,
 	DiscordApiErrors,
 	GuildBanAddEvent,
 	Member,
